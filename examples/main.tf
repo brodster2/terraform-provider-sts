@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/null"
       version = "3.1.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.7.1"
+    }
   }
 }
 
@@ -21,9 +25,7 @@ provider "aws" {
 
 provider "sts" {}
 
-data "aws_caller_identity" "current" {
-
-}
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "test" {
   name_prefix = "testing"
@@ -44,8 +46,15 @@ resource "aws_iam_role" "test" {
   managed_policy_arns = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
 }
 
+resource "time_sleep" "wait_for_iam" {
+  # Wait for eventual consistency of iam creating the role
+  create_duration = "8s"
+  depends_on      = [aws_iam_role.test]
+}
+
 data "sts_assume_role" "creds" {
-  role_arn = aws_iam_role.test.arn
+  role_arn   = aws_iam_role.test.arn
+  depends_on = [time_sleep.wait_for_iam]
 }
 
 resource "null_resource" "caller_identity" {
