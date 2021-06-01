@@ -14,28 +14,23 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"access_key": {
+			"access_key_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("AWS_ACCESS_KEY_ID", nil),
+				DefaultFunc: schema.EnvDefaultFunc("AWS_ACCESS_KEY_ID", ""),
 			},
-			"secret_key": {
+			"secret_access_key": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("AWS_SECRET_ACCESS_KEY", nil),
+				DefaultFunc: schema.EnvDefaultFunc("AWS_SECRET_ACCESS_KEY", ""),
 			},
-			"token": {
+			"session_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("AWS_SESSION_TOKEN", nil),
-			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("AWS_REGION", nil),
+				DefaultFunc: schema.EnvDefaultFunc("AWS_SESSION_TOKEN", ""),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{},
@@ -50,24 +45,24 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	access_key := d.Get("access_key").(string)
 	secret_key := d.Get("secret_key").(string)
 	token := d.Get("token").(string)
-	region := d.Get("region").(string)
 
 	var diags diag.Diagnostics
 	var cfg aws.Config
 	var err error
 
-	if (access_key != "") && (secret_key != "") {
-		cfg, err = config.LoadDefaultConfig(ctx,
-			config.WithRegion(region),
-			config.WithCredentialsProvider(
-				credentials.NewStaticCredentialsProvider(access_key, secret_key, token)))
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-			return nil, diags
-		}
-
-	} else {
-		diags = append(diags, diag.Errorf("Credentials not provided")...)
+	if (access_key == "") || (secret_key == "") {
+		diags = append(diags, diag.Errorf("access_key or secret_key not provided")...)
+		return nil, diags
 	}
+
+	cfg, err = config.LoadDefaultConfig(ctx,
+		config.WithRegion("us-east-1"),
+		config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(access_key, secret_key, token)))
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+		return nil, diags
+	}
+
 	return cfg, diags
 }

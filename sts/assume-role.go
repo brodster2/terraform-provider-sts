@@ -52,9 +52,18 @@ func dataSourceAssumeRoleRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	d.Set("access_key_id", creds.AccessKeyID)
-	d.Set("secret_access_key", creds.SecretAccessKey)
-	d.Set("session_token", creds.SessionToken)
+	err = d.Set("access_key_id", creds.AccessKeyID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = d.Set("secret_access_key", creds.SecretAccessKey)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = d.Set("session_token", creds.SessionToken)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// always run
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
