@@ -42,16 +42,16 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	access_key := d.Get("access_key").(string)
-	secret_key := d.Get("secret_key").(string)
-	token := d.Get("token").(string)
+	access_key := d.Get("access_key_id").(string)
+	secret_key := d.Get("secret_access_key").(string)
+	token := d.Get("session_token").(string)
 
 	var diags diag.Diagnostics
 	var cfg aws.Config
 	var err error
 
 	if (access_key == "") || (secret_key == "") {
-		diags = append(diags, diag.Errorf("access_key or secret_key not provided")...)
+		diags = append(diags, diag.Errorf("access_key_id or secret_access_key not provided")...)
 		return nil, diags
 	}
 

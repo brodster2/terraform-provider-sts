@@ -28,7 +28,7 @@ provider "sts" {}
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "test" {
-  name_prefix = "testing"
+  name_prefix = "testing-"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
